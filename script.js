@@ -1,38 +1,4 @@
-const board = document.getElementById('board');
-
-const boardSize = 8;
-const squares = [];
-let currentPlayer = 'red';
-
-const colors = ['red', 'black']
-for (const i in colors){
-    const color = colors[i]
-    colors[i] = color.charAt(0).toUpperCase() + color.slice(1);
-}
-
-function changeTurn(){
-    document.querySelector('h2').innerText = `Current Turn: ${currentPlayer}`;
-}
-changeTurn();
-
-// Initialize board
-for (let row = 0; row < boardSize; row++) {
-    for (let col = 0; col < boardSize; col++) {
-        const square = document.createElement('div');
-        square.classList.add('square');
-        square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
-        square.dataset.row = row;
-        square.dataset.col = col;
-
-        if (row < 3 && (row + col) % 2 !== 0) {
-            const piece = document.createElement('div');
-            piece.classList.add('piece', colors[1]);
-            piece.style.backgroundImage = "url('black-pawn.png')";
-            square.appendChild(piece);
-        } else if (row > 4 && (row + col) % 2 !== 0) {
-            const piece = document.createElement('div');
-            piece.classList.add('piece', colors[0]);
-            piece.style.backgroundImage = "url('red-pawn.png')";
+l('red-pawn.png')";
             square.appendChild(piece);
         }
 
