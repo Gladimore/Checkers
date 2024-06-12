@@ -1,4 +1,32 @@
-l('red-pawn.png')";
+const board = document.getElementById('board');
+
+const boardSize = 8;
+const squares = [];
+let currentPlayer = 'red';
+
+function changeTurn(){
+    document.querySelector('h2').innerText = `Current Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+}
+changeTurn();
+
+// Initialize board
+for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+        const square = document.createElement('div');
+        square.classList.add('square');
+        square.classList.add((row + col) % 2 === 0 ? 'white' : 'black');
+        square.dataset.row = row;
+        square.dataset.col = col;
+
+        if (row < 3 && (row + col) % 2 !== 0) {
+            const piece = document.createElement('div');
+            piece.classList.add('piece', 'black');
+            piece.style.backgroundImage = "url('black-pawn.png')";
+            square.appendChild(piece);
+        } else if (row > 4 && (row + col) % 2 !== 0) {
+            const piece = document.createElement('div');
+            piece.classList.add('piece', 'red');
+            piece.style.backgroundImage = "url('red-pawn.png')";
             square.appendChild(piece);
         }
 
@@ -54,7 +82,7 @@ function isValidMove(piece, pieceRow, pieceCol, targetRow, targetCol, rowDiff, c
     }
 
     const isKing = piece.classList.contains('king');
-    const direction = piece.classList.contains(colors[0]) ? -1 : 1;
+    const direction = piece.classList.contains('red') ? -1 : 1;
 
     if (Math.abs(rowDiff) === 1 && Math.abs(colDiff) === 1 && (isKing || rowDiff === direction)) {
         return true;
@@ -81,15 +109,15 @@ function removeCapturedPiece(pieceRow, pieceCol, targetRow, targetCol) {
 }
 
 function checkKing(piece, row) {
-    if ((piece.classList.contains(colors[0]) && row === 0) ||
-        (piece.classList.contains(colors[1]) && row === boardSize - 1)) {
+    if ((piece.classList.contains('red') && row === 0) ||
+        (piece.classList.contains('black') && row === boardSize - 1)) {
         piece.classList.add('king');
-        piece.style.backgroundImage = piece.classList.contains(colors[0]) ? "url('red-king.png')" : "url('black-king.png')";
+        piece.style.backgroundImage = piece.classList.contains('red') ? "url('red-king.png')" : "url('black-king.png')";
     }
 }
 
 function switchPlayer() {
-    currentPlayer = currentPlayer === colors[0] ? colors[1] : colors[0];
+    currentPlayer = currentPlayer === 'red' ? 'black' : 'red';
     if (selectedPiece) {
         selectedPiece.classList.remove('selected');
         selectedPiece = null;
