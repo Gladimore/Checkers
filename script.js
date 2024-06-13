@@ -197,38 +197,4 @@ function checkWin() {
     }
 }
 
-function resetGame() {
-    squares.forEach(square => {
-        const piece = square.querySelector('.piece');
-        if (piece) {
-            square.removeChild(piece);
-        }
-    });
-    // Reinitialize the board with pieces
-    initializeBoard();
-    currentPlayer = 'red';
-    changeTurn();
-}
-
-function initializeBoard() {
-    for (let row = 0; row < boardSize; row++) {
-        for (let col = 0; col < boardSize; col++) {
-            const square = getSquare(row, col);
-
-            if (row < 3 && (row + col) % 2 !== 0) {
-                const piece = document.createElement('div');
-                piece.classList.add('piece', 'black');
-                piece.style.backgroundImage = "url('black-pawn.png')";
-                square.appendChild(piece);
-            } else if (row > 4 && (row + col) % 2 !== 0) {
-                const piece = document.createElement('div');
-                piece.classList.add('piece', 'red');
-                piece.style.backgroundImage = "url('red-pawn.png')";
-                square.appendChild(piece);
-            }
-        }
-    }
-}
-
-// Initialize the board for the first time
-initializeBoard();
+function resetGame() {}
