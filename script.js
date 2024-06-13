@@ -4,8 +4,6 @@ const boardSize = 8;
 const squares = [];
 let currentPlayer = 'red';
 
-const colors = ['red', 'black'];
-
 function changeTurn() {
     document.querySelector('h2').innerText = `Current Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
 }
