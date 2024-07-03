@@ -1,10 +1,13 @@
 const board = document.getElementById('board');
+const canvas = document.getElementById('confetti');
+
+const jsConfetti = new JSConfetti({ canvas });
 
 const boardSize = 8;
 const squares = [];
 let currentPlayer = 'red';
 
-function changeTurn(){
+function changeTurn() {
     document.querySelector('h2').innerText = `Current Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
 }
 changeTurn();
@@ -75,6 +78,14 @@ function movePiece(piece, targetSquare) {
             selectedPiece = piece;
         } else {
             switchPlayer();
+            if (checkWin()) {
+                // Trigger confetti
+                jsConfetti.addConfetti();
+                // Display winner
+                document.querySelector('h2').innerText = `${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} Wins!`;
+                // Disable further moves
+                squares.forEach(square => square.removeEventListener('click', onSquareClick));
+            }
         }
     }
 }
@@ -147,4 +158,18 @@ function switchPlayer() {
 
 function getSquare(row, col) {
     return squares.find(square => square.dataset.row == row && square.dataset.col == col);
+}
+
+function checkWin() {
+    const pieces = document.querySelectorAll('.piece');
+    let redPieces = 0;
+    let blackPieces = 0;
+    pieces.forEach(piece => {
+        if (piece.classList.contains('red')) {
+            redPieces++;
+        } else if (piece.classList.contains('black')) {
+            blackPieces++;
+        }
+    });
+    return redPieces === 0 || blackPieces === 0;
 }
