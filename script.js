@@ -26,11 +26,9 @@ for (let row = 0; row < boardSize; row++) {
         square.dataset.col = col;
 
         if (row < 3 && (row + col) % 2 !== 0) {
-            if (row === 0 && col === 1){
-                const piece = document.createElement('div');
+            const piece = document.createElement('div');
                 piece.classList.add('piece', 'black')
                 square.appendChild(piece);
-            }
         } else if (row > 4 && (row + col) % 2 !== 0) {
             const piece = document.createElement('div');
             piece.classList.add('piece', 'red');
