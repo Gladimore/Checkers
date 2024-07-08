@@ -1,12 +1,18 @@
 const board = document.getElementById('board');
+const winning = document.querySelector('h2');
+
 const jsConfetti = new JSConfetti();
 
 const boardSize = 8;
 const squares = [];
 let currentPlayer = 'red';
 
+function upper(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function changeTurn(){
-    document.querySelector('h2').innerText = `Current Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+winning.innerHTML = `<span class = "txt ${currentPlayer}">${upper(currentPlayer)}'s</span> Turn`
 }
 changeTurn();
 
@@ -20,9 +26,11 @@ for (let row = 0; row < boardSize; row++) {
         square.dataset.col = col;
 
         if (row < 3 && (row + col) % 2 !== 0) {
-            const piece = document.createElement('div');
-            piece.classList.add('piece', 'black')
-            square.appendChild(piece);
+            if (row === 0 && col === 1){
+                const piece = document.createElement('div');
+                piece.classList.add('piece', 'black')
+                square.appendChild(piece);
+            }
         } else if (row > 4 && (row + col) % 2 !== 0) {
             const piece = document.createElement('div');
             piece.classList.add('piece', 'red');
@@ -70,21 +78,20 @@ function movePiece(piece, targetSquare) {
         targetSquare.appendChild(piece);
         const capturedPiece = removeCapturedPiece(pieceRow, pieceCol, targetRow, targetCol);
         checkKing(piece, targetRow);
-        if (capturedPiece && canJumpAgain(piece, targetRow, targetCol)) {
+        if (capturedPiece && canJumpAgain(piece, targetRow, targetCol) && !checkWin()) {
             selectedPiece = piece;
         } else {
-            switchPlayer();
+            if (!checkWin()) {
+                switchPlayer()
+            } else {
+                // Trigger confetti
+                jsConfetti.addConfetti();
+                // Display winner
+                winning.innerText = upper(`${currentPlayer} Wins!`)
+                // Disable further moves
+                squares.forEach(square => square.removeEventListener('click', onSquareClick));
+            }
         }
-    }
-
-    if (checkWin()) {
-        switchPlayer()
-        // Trigger confetti
-        jsConfetti.addConfetti();
-        // Display winner
-        document.querySelector('h2').innerText = `${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)} Wins!`;
-        // Disable further moves
-        squares.forEach(square => square.removeEventListener('click', onSquareClick));
     }
 }
 
@@ -127,26 +134,35 @@ function checkKing(piece, row) {
     if ((piece.classList.contains('red') && row === 0) ||
         (piece.classList.contains('black') && row === boardSize - 1)) {
         piece.classList.add('king');
-        piece.style.backgroundImage = piece.classList.contains('red') ? "url('images/red-king.png')" : "url('images/black-king.png')";
     }
 }
 
 function canJumpAgain(piece, row, col) {
     const directions = [
-        [2, 2], [2, -2], [-2, 2], [-2, -2]
+        [1, 1], [1, -1], [-1, 1], [-1, -1]
     ];
-    for (let [rowDiff, colDiff] of directions) {
-        const targetRow = row + rowDiff;
-        const targetCol = col + colDiff;
-        if (isValidMove(piece, row, col, targetRow, targetCol, rowDiff, colDiff)) {
-            return true;
+
+    for (let i = 0; i < 2; i++){
+        for (let [rowDiff, colDiff] of directions) {
+            rowDiff *= i;
+            colDiff *= i;
+            const targetRow = row + rowDiff;
+            const targetCol = col + colDiff;
+            if (isValidMove(piece, row, col, targetRow, targetCol, rowDiff, colDiff)) {
+                return true;
+            }
         }
     }
+
     return false;
 }
 
+function opColor() {
+    return currentPlayer === 'red' ? 'black' : 'red';
+}
+
 function switchPlayer() {
-    currentPlayer = currentPlayer === 'red' ? 'black' : 'red';
+    currentPlayer = opColor();
     if (selectedPiece) {
         selectedPiece.classList.remove('selected');
         selectedPiece = null;
@@ -162,6 +178,7 @@ function checkWin() {
     const pieces = document.querySelectorAll('.piece');
     let redPieces = 0;
     let blackPieces = 0;
+
     pieces.forEach(piece => {
         if (piece.classList.contains('red')) {
             redPieces++;
