@@ -11,8 +11,8 @@ function upper(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function changeTurn(){
-winning.innerHTML = `<span class = "txt ${currentPlayer}">${upper(currentPlayer)}'s</span> Turn`
+function changeTurn() {
+    winning.innerHTML = `<span class="txt ${currentPlayer}">${upper(currentPlayer)}'s</span> Turn`
 }
 changeTurn();
 
@@ -26,9 +26,10 @@ for (let row = 0; row < boardSize; row++) {
         square.dataset.col = col;
 
         if (row < 3 && (row + col) % 2 !== 0) {
-            const piece = document.createElement('div');
-                piece.classList.add('piece', 'black')
+                const piece = document.createElement('div');
+                piece.classList.add('piece', 'black');
                 square.appendChild(piece);
+            
         } else if (row > 4 && (row + col) % 2 !== 0) {
             const piece = document.createElement('div');
             piece.classList.add('piece', 'red');
@@ -78,14 +79,15 @@ function movePiece(piece, targetSquare) {
         checkKing(piece, targetRow);
         if (capturedPiece && canJumpAgain(piece, targetRow, targetCol) && !checkWin()) {
             selectedPiece = piece;
+            selectedPiece.classList.add('selected');
         } else {
             if (!checkWin()) {
-                switchPlayer()
+                switchPlayer();
             } else {
                 // Trigger confetti
                 jsConfetti.addConfetti();
                 // Display winner
-                winning.innerText = upper(`${currentPlayer} Wins!`)
+                winning.innerText = upper(`${currentPlayer} Wins!`);
                 // Disable further moves
                 squares.forEach(square => square.removeEventListener('click', onSquareClick));
             }
@@ -137,16 +139,21 @@ function checkKing(piece, row) {
 
 function canJumpAgain(piece, row, col) {
     const directions = [
-        [1, 1], [1, -1], [-1, 1], [-1, -1]
+        [2, 2], [2, -2], [-2, 2], [-2, -2]
     ];
 
-    for (let i = 0; i < 2; i++){
-        for (let [rowDiff, colDiff] of directions) {
-            rowDiff *= i;
-            colDiff *= i;
-            const targetRow = row + rowDiff;
-            const targetCol = col + colDiff;
-            if (isValidMove(piece, row, col, targetRow, targetCol, rowDiff, colDiff)) {
+    for (let [rowDiff, colDiff] of directions) {
+        const targetRow = row + rowDiff;
+        const targetCol = col + colDiff;
+        const middleRow = row + rowDiff / 2;
+        const middleCol = col + colDiff / 2;
+
+        // Check if target position is within the board boundaries
+        if (targetRow >= 0 && targetRow < boardSize && targetCol >= 0 && targetCol < boardSize) {
+            const middleSquare = getSquare(middleRow, middleCol);
+            const middlePiece = middleSquare?.querySelector('.piece');
+
+            if (middlePiece && !middlePiece.classList.contains(currentPlayer) && isValidMove(piece, row, col, targetRow, targetCol, rowDiff, colDiff)) {
                 return true;
             }
         }
