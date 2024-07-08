@@ -16,6 +16,14 @@ h2 {
   margin-bottom: 20px;
 }
 
+.txt.red {
+  color: #eb4d3d;
+}
+
+.txt.black {
+  color: #000000;
+}
+
 #board {
   display: grid;
   grid-template-columns: repeat(8, 50px);
@@ -31,11 +39,11 @@ h2 {
   justify-content: center;
 }
 
-.black {
+.square.black {
   background-color: #000;
 }
 
-.white {
+.square.white {
   background-color: #fff;
 }
 
@@ -43,6 +51,7 @@ h2 {
   width: 40px;
   height: 40px;
   background-size: cover;
+  background: transperant;
 }
 
 .piece.red {
@@ -55,6 +64,14 @@ h2 {
 
 .king {
   border: 2px solid gold;
+}
+
+.red.king {
+  background-image: url('images/red-king.png');
+}
+
+.black.king {
+  background-image: url('images/black-king.png');
 }
 
 .selected {
