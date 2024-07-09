@@ -14,7 +14,7 @@ function upper(str) {
 }
 
 function changeTurn(won = false) {
-    winning.innerHTML = `<span class="txt ${currentPlayer}">${upper(currentPlayer)}'s</span> ${won ? 'Won!' : 'Turn'}`
+    winning.innerHTML = `<span class="txt ${currentPlayer}">${upper(currentPlayer)}${won === false && ''s'}</span> ${won ? 'Won!' : 'Turn'}`
 }
 changeTurn();
 
