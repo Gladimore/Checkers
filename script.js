@@ -7,7 +7,7 @@ const boardSize = 8;
 const squares = [];
 let currentPlayer = 'red';
 
-const test = !(window.location.href.includes("github") || false)
+const test = !(window.location.href.includes("github"))
 
 function upper(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
