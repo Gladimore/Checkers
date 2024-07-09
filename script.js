@@ -7,14 +7,23 @@ const boardSize = 8;
 const squares = [];
 let currentPlayer = 'red';
 
+const test = !(window.location.href.includes("github") || false)
+
 function upper(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function changeTurn() {
-    winning.innerHTML = `<span class="txt ${currentPlayer}">${upper(currentPlayer)}'s</span> Turn`
+function changeTurn(won = false) {
+    winning.innerHTML = `<span class="txt ${currentPlayer}">${upper(currentPlayer)}'s</span> ${won ? 'Won!' : 'Turn'}`
 }
 changeTurn();
+
+
+function makePiece(square, color) {
+    const piece = document.createElement('div');
+    piece.classList.add('piece', color);
+    square.appendChild(piece);
+}
 
 // Initialize board
 for (let row = 0; row < boardSize; row++) {
@@ -26,15 +35,10 @@ for (let row = 0; row < boardSize; row++) {
         square.dataset.col = col;
 
         if (row < 3 && (row + col) % 2 !== 0) {
-                const piece = document.createElement('div');
-                piece.classList.add('piece', 'black');
-                square.appendChild(piece);
-            
-        } else if (row > 4 && (row + col) % 2 !== 0) {
-            const piece = document.createElement('div');
-            piece.classList.add('piece', 'red');
-            square.appendChild(piece);
-        }
+            if (test && row === 0 && col === 1) makePiece(square, 'black');
+
+            if (!test) makePiece(square, 'black');
+        } else if (row > 4 && (row + col) % 2 !== 0) makePiece(square, 'red');
 
         square.addEventListener('click', onSquareClick);
 
@@ -87,7 +91,7 @@ function movePiece(piece, targetSquare) {
                 // Trigger confetti
                 jsConfetti.addConfetti();
                 // Display winner
-                winning.innerText = upper(`${currentPlayer} Wins!`);
+                changeTurn(true);
                 // Disable further moves
                 squares.forEach(square => square.removeEventListener('click', onSquareClick));
             }
