@@ -7,17 +7,16 @@ const boardSize = 8;
 const squares = [];
 let currentPlayer = 'red';
 
-const test = !(window.location.href.includes("github"))
+const test = !(window.location.href.includes("github")) & false
 
 function upper(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function changeTurn(won = false) {
-    winning.innerHTML = `<span class="txt ${currentPlayer}">${upper(currentPlayer)}${won ? '' : "'s"}</span> ${won ? 'Won!' : 'Turn'}`
+    winning.innerHTML = `<span class="txt ${currentPlayer}">${upper(currentPlayer)}${won ? '' : "'s"}</span><span id = 'turn'>${won ? 'Won!' : 'Turn'}</span>`
 }
 changeTurn();
-
 
 function makePiece(square, color) {
     const piece = document.createElement('div');
