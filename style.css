@@ -84,6 +84,7 @@ h2 {
   outline: 2px solid yellow;
 }
 
-.highlight {
-    background-color: rgba(255, 255, 0, 0.3);
+.square.highlight {
+    background-color: rgba(255, 255, 0, 0.35);
+  transition: background-color 0.05s ease;
 }
