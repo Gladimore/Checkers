@@ -13,8 +13,8 @@ function upper(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function changeTurn(won = false) {
-    winning.innerHTML = `<span class="txt ${currentPlayer}">${upper(currentPlayer)}${won ? '' : "'s"}</span><span id = 'turn'> ${won ? 'Won!' : 'Turn'}</span>`
+function changeTurn(won = false, player = "") {
+    winning.innerHTML = `<span class="txt ${player || currentPlayer}">${upper((won && player) || currentPlayer)}${won ? '' : "'s"}</span><span id = 'turn'> ${won ? 'Won!' : 'Turn'}</span>`
 }
 changeTurn();
 
@@ -60,10 +60,18 @@ function onSquareClick(event) {
 let selectedPiece = null;
 
 function selectPiece(piece) {
+    if (selectedPiece && selectedPiece == piece) {return}
+    
     if (selectedPiece) {
         selectedPiece.classList.remove('selected');
+
+        // Remove highlight from all squares
+        clearHighlights()
     }
+
     selectedPiece = piece;
+
+    highlight(selectedPiece);
     selectedPiece.classList.add('selected');
 }
 
@@ -77,6 +85,8 @@ function movePiece(piece, targetSquare) {
     const colDiff = targetCol - pieceCol;
 
     if (isValidMove(piece, pieceRow, pieceCol, targetRow, targetCol, rowDiff, colDiff)) {
+        clearHighlights();
+        
         targetSquare.appendChild(piece);
         const capturedPiece = removeCapturedPiece(pieceRow, pieceCol, targetRow, targetCol);
         checkKing(piece, targetRow);
@@ -84,13 +94,15 @@ function movePiece(piece, targetSquare) {
             selectedPiece = piece;
             selectedPiece.classList.add('selected');
         } else {
-            if (!checkWin()) {
+            const winner = checkWin();
+            
+            if (!winner) {
                 switchPlayer();
             } else {
                 // Trigger confetti
                 jsConfetti.addConfetti();
                 // Display winner
-                changeTurn(true);
+                changeTurn(true, winner);
                 // Disable further moves
                 squares.forEach(square => square.removeEventListener('click', onSquareClick));
             }
@@ -165,6 +177,56 @@ function canJumpAgain(piece, row, col) {
     return false;
 }
 
+function highlight(piece) {
+    const directions = [];
+
+    const isKing = piece.classList.contains('king');
+    const isRed = piece.classList.contains('red');
+
+    if (isKing || isRed) {
+        directions.push([-1, 1], [-1, -1]); // Upwards moves for red and kings
+        directions.push([-2, 2], [-2, -2]); // Upwards jump moves for red and kings
+    }
+
+    if (isKing || !isRed) {
+        directions.push([1, 1], [1, -1]); // Downwards moves for black and kings
+        directions.push([2, 2], [2, -2]); // Downwards jump moves for black and kings
+    }
+
+    const row = parseInt(piece.parentNode.dataset.row, 10);
+    const col = parseInt(piece.parentNode.dataset.col, 10);
+
+    for (let [rowDiff, colDiff] of directions) {
+        const targetRow = row + rowDiff;
+        const targetCol = col + colDiff;
+        const middleRow = row + rowDiff / 2;
+        const middleCol = col + colDiff / 2;
+
+        // Check if target position is within the board boundaries
+        if (targetRow >= 0 && targetRow < boardSize && targetCol >= 0 && targetCol < boardSize) {
+            const targetSquare = getSquare(targetRow, targetCol);
+            const middleSquare = getSquare(middleRow, middleCol);
+
+            // For jump moves, ensure there's an opponent piece in the middle square
+            if (Math.abs(rowDiff) === 2 && middleSquare) {
+                const middlePiece = middleSquare.querySelector('.piece');
+                if (middlePiece && !middlePiece.classList.contains(currentPlayer)) {
+                    targetSquare.classList.add('highlight');
+                }
+            } else if (Math.abs(rowDiff) === 1) {
+                // For regular moves, just check if the target square is empty
+                if (targetSquare && !targetSquare.querySelector('.piece')) {
+                    targetSquare.classList.add('highlight');
+                }
+            }
+        }
+    }
+}
+
+function clearHighlights() {
+    squares.forEach(square => square.classList.remove('highlight'));
+}
+
 function opColor() {
     return currentPlayer === 'red' ? 'black' : 'red';
 }
@@ -186,13 +248,77 @@ function checkWin() {
     const pieces = document.querySelectorAll('.piece');
     let redPieces = 0;
     let blackPieces = 0;
+    let redValidMoves = 0;
+    let blackValidMoves = 0;
 
     pieces.forEach(piece => {
-        if (piece.classList.contains('red')) {
+        const isRed = piece.classList.contains('red');
+        const isBlack = piece.classList.contains('black');
+        const isKing = piece.classList.contains('king');
+        const row = parseInt(piece.parentNode.dataset.row, 10);
+        const col = parseInt(piece.parentNode.dataset.col, 10);
+
+        if (isRed) {
             redPieces++;
-        } else if (piece.classList.contains('black')) {
+            redValidMoves += countValidMoves(piece, row, col, isKing, 'red');
+        } else if (isBlack) {
             blackPieces++;
+            blackValidMoves += countValidMoves(piece, row, col, isKing, 'black');
         }
     });
-    return redPieces === 0 || blackPieces === 0;
+    
+    if (redPieces === 0) {
+        return 'black';
+    } else if (blackPieces === 0) {
+        return 'red';
+    } else if (redValidMoves === 0) {
+        return 'black';
+    } else if (blackValidMoves === 0) {
+        return 'red';
+    }
+    return null;
+}
+
+function countValidMoves(piece, row, col, isKing, color) {
+    const directions = [];
+
+    if (isKing || color === 'red') {
+        directions.push([-1, 1], [-1, -1]); // Upwards moves for red and kings
+        directions.push([-2, 2], [-2, -2]); // Upwards jump moves for red and kings
+    }
+
+    if (isKing || color === 'black') {
+        directions.push([1, 1], [1, -1]); // Downwards moves for black and kings
+        directions.push([2, 2], [2, -2]); // Downwards jump moves for black and kings
+    }
+
+    let validMoves = 0;
+
+    for (let [rowDiff, colDiff] of directions) {
+        const targetRow = row + rowDiff;
+        const targetCol = col + colDiff;
+        const middleRow = row + Math.floor(rowDiff / 2);
+        const middleCol = col + Math.floor(colDiff / 2);
+
+        // Check if target position is within the board boundaries
+        if (targetRow >= 0 && targetRow < boardSize && targetCol >= 0 && targetCol < boardSize) {
+            const targetSquare = getSquare(targetRow, targetCol);
+            const middleSquare = getSquare(middleRow, middleCol);
+
+            // For jump moves, ensure there's an opponent piece in the middle square
+            if (Math.abs(rowDiff) === 2 && middleSquare) {
+                const middlePiece = middleSquare.querySelector('.piece');
+                if (middlePiece && !middlePiece.classList.contains(color) && !targetSquare.querySelector('.piece')) {
+                    validMoves++;
+                }
+            } else if (Math.abs(rowDiff) === 1) {
+                // For regular moves, just check if the target square is empty
+                if (targetSquare && !targetSquare.querySelector('.piece')) {
+                    validMoves++;
+                }
+            }
+        }
+    }
+
+    return validMoves;
 }
