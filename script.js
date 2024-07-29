@@ -179,38 +179,36 @@ function canJumpAgain(piece, row, col) {
 
 function highlight(piece) {
     const directions = [];
-
+    const row = parseInt(piece.parentNode.dataset.row, 10);
+    const col = parseInt(piece.parentNode.dataset.col, 10);
     const isKing = piece.classList.contains('king');
-    const isRed = piece.classList.contains('red');
+    const color = piece.classList.contains('red') ? 'red' : 'black';
 
-    if (isKing || isRed) {
+    if (isKing || color === 'red') {
         directions.push([-1, 1], [-1, -1]); // Upwards moves for red and kings
         directions.push([-2, 2], [-2, -2]); // Upwards jump moves for red and kings
     }
 
-    if (isKing || !isRed) {
+    if (isKing || color === 'black') {
         directions.push([1, 1], [1, -1]); // Downwards moves for black and kings
         directions.push([2, 2], [2, -2]); // Downwards jump moves for black and kings
     }
 
-    const row = parseInt(piece.parentNode.dataset.row, 10);
-    const col = parseInt(piece.parentNode.dataset.col, 10);
-
     for (let [rowDiff, colDiff] of directions) {
         const targetRow = row + rowDiff;
         const targetCol = col + colDiff;
-        const middleRow = row + rowDiff / 2;
-        const middleCol = col + colDiff / 2;
+        const middleRow = row + Math.floor(rowDiff / 2);
+        const middleCol = col + Math.floor(colDiff / 2);
 
         // Check if target position is within the board boundaries
         if (targetRow >= 0 && targetRow < boardSize && targetCol >= 0 && targetCol < boardSize) {
             const targetSquare = getSquare(targetRow, targetCol);
             const middleSquare = getSquare(middleRow, middleCol);
 
-            // For jump moves, ensure there's an opponent piece in the middle square
+            // For jump moves, ensure there's an opponent piece in the middle square and target square is empty
             if (Math.abs(rowDiff) === 2 && middleSquare) {
                 const middlePiece = middleSquare.querySelector('.piece');
-                if (middlePiece && !middlePiece.classList.contains(currentPlayer)) {
+                if (middlePiece && !middlePiece.classList.contains(color) && targetSquare && !targetSquare.querySelector('.piece')) {
                     targetSquare.classList.add('highlight');
                 }
             } else if (Math.abs(rowDiff) === 1) {
