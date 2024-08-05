@@ -6,14 +6,15 @@ body {
   height: 100vh;
   background-color: #451e00;
   font-family: Arial, sans-serif;
+  overflow: hidden;
 }
 
 h1 {
-  margin-bottom: 10px;
+  margin-bottom: 5%;
 }
 
 h2 {
-  margin-bottom: 20px;
+  margin-bottom: 10%;
 }
 
 .txt, #turn {
@@ -30,14 +31,14 @@ h2 {
 
 #board {
   display: grid;
-  grid-template-columns: repeat(8, 50px);
-  grid-template-rows: repeat(8, 50px);
+  grid-template-columns: repeat(8, 12vw);
+  grid-template-rows: repeat(8, 12vw);
   gap: 0;
 }
 
 .square {
-  width: 50px;
-  height: 50px;
+  width: 100%;
+  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,8 +53,8 @@ h2 {
 }
 
 .piece {
-  width: 40px;
-  height: 40px;
+  width: 85%;
+  height: 85%;
   background-size: cover;
   background: transperant;
   border-radius: 100%;
