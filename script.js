@@ -51,33 +51,29 @@ function makePiece(square, color) {
 }
 
 function handleDrag() {
-    document.querySelectorAll(".piece").forEach((piece) => {
-        piece.addEventListener("dragstart", (event) => {
-            event.dataTransfer.setData(
-                "text/plain",
-                event.target.parentNode.dataset.row +
-                    "," +
-                    event.target.parentNode.dataset.col,
-            );
+    const pieces = document.querySelectorAll(".piece");
+    const squares = document.querySelectorAll(".square");
+
+    pieces.forEach(piece => {
+        piece.addEventListener("dragstart", event => {
+            const { row, col } = event.target.parentNode.dataset;
+            event.dataTransfer.setData("text/plain", `${row},${col}`);
             event.dataTransfer.effectAllowed = "move";
             selectPiece(event.target);
         });
     });
 
-    document.querySelectorAll(".square").forEach((square) => {
-        square.addEventListener("dragover", (event) => {
+    squares.forEach(square => {
+        square.addEventListener("dragover", event => {
             event.preventDefault();
             event.dataTransfer.dropEffect = "move";
         });
 
-        square.addEventListener("drop", (event) => {
+        square.addEventListener("drop", event => {
             event.preventDefault();
-            const data = event.dataTransfer.getData("text/plain").split(",");
-            const pieceRow = parseInt(data[0], 10);
-            const pieceCol = parseInt(data[1], 10);
+            const [pieceRow, pieceCol] = event.dataTransfer.getData("text/plain").split(",").map(Number);
             const piece = getSquare(pieceRow, pieceCol).querySelector(".piece");
-            const targetSquare = event.currentTarget;
-movePiece(piece, targetSquare);
+            movePiece(piece, event.currentTarget);
         });
     });
 }
