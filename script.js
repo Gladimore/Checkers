@@ -1,7 +1,10 @@
-import "./DragDropTouch.js";
+import "./modules/DragDropTouch.js";
 
 const board = document.getElementById("board");
 const winning = document.querySelector("h2");
+
+const redTakenContainer = document.getElementById("red-taken");
+const blackTakenContainer = document.getElementById("black-taken");
 
 const jsConfetti = new JSConfetti();
 
@@ -19,6 +22,18 @@ function changeTurn(won = false, player = "") {
     winning.innerHTML = `<span class="txt ${player || currentPlayer}">${upper((won && player) || currentPlayer)}${won ? "" : "'s"}</span><span id = 'turn'> ${won ? "Won!" : "Turn"}</span>`;
 }
 changeTurn();
+
+function updateTakenPieces(takenPiece) {
+    const takenContainer = takenPiece.classList.contains("red")
+        ? redTakenContainer
+        : blackTakenContainer;
+    const takenPieceDisplay = document.createElement("div");
+    takenPieceDisplay.classList.add("piece", takenPiece.classList[1]);
+    if (takenPiece.classList.contains("king")) {
+        takenPieceDisplay.classList.add("king");
+    }
+    takenContainer.appendChild(takenPieceDisplay);
+}
 
 function makePiece(square, color) {
     const piece = document.createElement("div");
@@ -234,7 +249,8 @@ function removeCapturedPiece(pieceRow, pieceCol, targetRow, targetCol) {
         const middleSquare = getSquare(middleRow, middleCol);
         const middlePiece = middleSquare.querySelector(".piece");
         if (middlePiece) {
-            middleSquare.removeChild(middlePiece);
+            updateTakenPieces(middlePiece);
+    middleSquare.removeChild(middlePiece);
             return middlePiece;
         }
     }
