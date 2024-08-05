@@ -1,4 +1,4 @@
-import "/DragDropTouch.js";
+import "./DragDropTouch.js";
 
 const board = document.getElementById("board");
 const winning = document.querySelector("h2");
