@@ -6,6 +6,9 @@ const winning = document.querySelector("h2");
 const redTakenContainer = document.getElementById("red-taken");
 const blackTakenContainer = document.getElementById("black-taken");
 
+const undo_img = document.getElementById("undo");
+const redo_img = document.getElementById("redo");
+
 const jsConfetti = new JSConfetti();
 
 const boardSize = 8;
@@ -117,6 +120,15 @@ function onSquareClick(event) {
 
 let selectedPiece = null;
 
+function resetSelected() {
+        if (selectedPiece) {
+            selectedPiece.classList.remove("selected");
+
+            // Remove highlight from all squares
+            clearHighlights();
+        }
+}
+
 function selectPiece(piece) {
     if (
         (selectedPiece && selectedPiece == piece) ||
@@ -126,12 +138,7 @@ function selectPiece(piece) {
         return;
     }
 
-    if (selectedPiece) {
-        selectedPiece.classList.remove("selected");
-
-        // Remove highlight from all squares
-        clearHighlights();
-    }
+    resetSelected();
 
     selectedPiece = piece;
 
@@ -139,12 +146,80 @@ function selectPiece(piece) {
     selectedPiece.classList.add("selected");
 }
 
+let history = [];
+let redoStack = [];
+
+function undo() {
+    if (history.length === 0) return;
+    resetSelected();
+    selectedPiece = null;
+
+    const lastMove = history.pop();
+    redoStack.push(lastMove);
+
+    const { piece, fromSquare, toSquare, capturedPiece, capturedPieceOriginalRow, capturedPieceOriginalCol, wasKing } = lastMove;
+
+    // Move piece back to its original position
+    fromSquare.appendChild(piece);
+
+    // Restore captured piece if any
+    if (capturedPiece) {
+        // Remove the captured piece from the taken container
+        const capturedContainer = capturedPiece.classList.contains("red") ? redTakenContainer : blackTakenContainer;
+        capturedContainer.querySelector(`.${capturedPiece.classList[1]}`)?.remove();
+
+        // Restore the captured piece to its original position
+        const capturedSquare = getSquare(capturedPieceOriginalRow, capturedPieceOriginalCol);
+        if (capturedSquare) {
+            capturedSquare.appendChild(capturedPiece);
+        }
+    }
+
+    // Revert king status if applicable
+    if (wasKing && piece.classList.contains("king")) {
+        piece.classList.remove("king");
+    }
+
+    // Clear target square
+    toSquare.querySelector(".piece")?.remove();
+
+    switchPlayer();
+}
+
+function redo() {
+    if (redoStack.length === 0) return;
+    resetSelected()
+    selectedPiece = null;
+
+    const lastUndone = redoStack.pop();
+    history.push(lastUndone);
+
+    const { piece, fromSquare, toSquare, capturedPiece, wasKing } = lastUndone;
+
+    // Move piece back to its redone position
+    toSquare.appendChild(piece);
+
+    // Remove captured piece if any
+    if (capturedPiece) {
+        capturedPiece.remove();
+    }
+
+    // Reapply king status if applicable
+    if (wasKing && !piece.classList.contains("king")) {
+        piece.classList.add("king");
+    }
+
+    // Clear from square
+    fromSquare.querySelector(".piece")?.remove();
+
+    switchPlayer();
+}
+
 function movePiece(piece, targetSquare) {
-    if (!piece || !piece.classList.contains(currentPlayer)
-    ) {
+    if (!piece || !piece.classList.contains(currentPlayer)) {
         return;
     }
-    
+
     const targetRow = parseInt(targetSquare.dataset.row, 10);
     const targetCol = parseInt(targetSquare.dataset.col, 10);
     const pieceRow = parseInt(piece.parentNode.dataset.row, 10);
@@ -166,20 +241,31 @@ function movePiece(piece, targetSquare) {
     ) {
         clearHighlights();
 
+        const fromSquare = piece.parentNode;
+        const captured = removeCapturedPiece(pieceRow, pieceCol, targetRow, targetCol);
+
+        const wasKing = piece.classList.contains("king");
         targetSquare.appendChild(piece);
-        const capturedPiece = removeCapturedPiece(
-            pieceRow,
-            pieceCol,
-            targetRow,
-            targetCol,
-        );
+
+        // Save move to history for undo
+        history.push({ 
+            piece, 
+            fromSquare, 
+            toSquare: targetSquare, 
+            capturedPiece: captured?.piece, 
+            capturedPieceOriginalRow: captured?.originalRow, 
+            capturedPieceOriginalCol: captured?.originalCol,
+            wasKing 
+        });
+        redoStack = []; // Clear redo stack since new move invalidates it
+
         checkKing(piece, targetRow);
         if (
-            capturedPiece &&
+            captured?.piece &&
             canJumpAgain(piece, targetRow, targetCol) &&
             !checkWin()
         ) {
-            highlight(piece)
+            highlight(piece);
             selectedPiece = piece;
             selectedPiece.classList.add("selected");
         } else {
@@ -188,11 +274,8 @@ function movePiece(piece, targetSquare) {
             if (!winner) {
                 switchPlayer();
             } else {
-                // Trigger confetti
                 jsConfetti.addConfetti();
-                // Display winner
                 changeTurn(true, winner);
-                // Disable further moves
                 squares.forEach((square) =>
                     square.removeEventListener("click", onSquareClick),
                 );
@@ -246,8 +329,8 @@ function removeCapturedPiece(pieceRow, pieceCol, targetRow, targetCol) {
         const middlePiece = middleSquare.querySelector(".piece");
         if (middlePiece) {
             updateTakenPieces(middlePiece);
-    middleSquare.removeChild(middlePiece);
-            return middlePiece;
+            middleSquare.removeChild(middlePiece);
+            return { piece: middlePiece, originalRow: middleRow, originalCol: middleCol };
         }
     }
     return null;
@@ -482,3 +565,6 @@ function countValidMoves(piece, row, col, isKing, color) {
 
     return validMoves;
 }
+
+redo_img.addEventListener("click", redo)
+undo_img.addEventListener("click", undo)
